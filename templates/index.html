@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Horizons — Travel Destination Explorer</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;500;600;700;800&family=Kalam:wght@300&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+:root{
+  --navy:#0F2744;--blue:#1A3F6F;--mid:#2563A8;--sky:#3B82C4;--pale:#5BA3D9;
+  --accent:#F59E0B;--accent2:#FBBF24;
+  --cream:#F0F6FF;--white:#FFFFFF;
+  --ink:#0A1628;--text:#1E3A5F;--muted:#5B7FA6;
+  --light:#DCE9F8;--border:#B8D0EC;--card:#FFFFFF;
+}
+
+/* ══ SPLASH ══ */
+#splash{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,#050D1A 0%,#0A1F3A 45%,#061428 100%);transition:opacity 1.2s ease,visibility 1.2s;overflow:hidden}
+#splash.gone{opacity:0;visibility:hidden;pointer-events:none}
+.sp-topo{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.sp-topo svg{width:100%;height:100%;opacity:.06}
+.sp-stars{position:absolute;inset:0;pointer-events:none}
+.sp-star{position:absolute;border-radius:50%;background:white;animation:twinkle var(--sd,3s) var(--ss,0s) ease-in-out infinite alternate}
+@keyframes twinkle{from{opacity:var(--sa,.05)}to{opacity:var(--sb,.6)}}
+.sp-blob{position:absolute;font-size:9rem;opacity:.22;pointer-events:none;user-select:none;filter:brightness(.4) saturate(.5) hue-rotate(200deg);animation:drift var(--dur,20s) var(--del,0s) ease-in-out infinite alternate}
+@keyframes drift{from{transform:translate(0,0) rotate(var(--r0,0deg))}to{transform:translate(var(--tx,10px),var(--ty,-10px)) rotate(var(--r1,4deg))}}
+.sp-blob.b1{top:-3%;left:-2%;font-size:12rem;--dur:22s;--r0:-12deg;--r1:2deg;--tx:20px;--ty:15px}
+.sp-blob.b2{top:-3%;right:-2%;font-size:12rem;--dur:18s;--del:-4s;--r0:10deg;--r1:-3deg;--tx:-18px;--ty:20px}
+.sp-blob.b3{bottom:-3%;left:-1%;font-size:12rem;--dur:25s;--del:-8s;--r0:5deg;--r1:-7deg;--tx:22px;--ty:-14px}
+.sp-blob.b4{bottom:-3%;right:-1%;font-size:12rem;--dur:21s;--del:-2s;--r0:-7deg;--r1:6deg;--tx:-20px;--ty:-10px}
+.sp-blob.b5{top:35%;left:-2%;font-size:7rem;--dur:16s;--del:-5s;--r0:-3deg;--r1:9deg;--tx:14px;--ty:-18px}
+.sp-blob.b6{top:32%;right:-2%;font-size:7rem;--dur:20s;--del:-10s;--r0:9deg;--r1:-4deg;--tx:-14px;--ty:14px}
+.sp-horizon{position:absolute;bottom:0;left:0;right:0;height:220px;background:linear-gradient(to top,rgba(37,99,168,.15),transparent);pointer-events:none}
+.sp-pin{width:64px;height:64px;background:var(--accent);border-radius:50% 50% 50% 0;transform:rotate(-45deg);margin-bottom:28px;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 32px rgba(245,158,11,.4);animation:pinDrop .9s .15s cubic-bezier(.34,1.56,.64,1) both;position:relative}
+.sp-pin::after{content:'';position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);width:14px;height:8px;background:rgba(245,158,11,.25);border-radius:50%;filter:blur(4px)}
+.sp-pin-icon{transform:rotate(45deg);font-size:1.6rem}
+@keyframes pinDrop{from{opacity:0;transform:rotate(-45deg) translateY(-40px) scale(.4)}to{opacity:1;transform:rotate(-45deg) translateY(0) scale(1)}}
+.sp-coords{font-family:'Kalam',cursive;font-size:.88rem;color:rgba(245,158,11,.6);letter-spacing:2px;margin-bottom:14px;animation:fadeUp .6s .4s both}
+.sp-brand{font-family:'Libre Baskerville',serif;font-size:clamp(4rem,9vw,7rem);font-weight:700;color:#E8F4FF;line-height:.9;letter-spacing:-2px;animation:fadeUp .7s .5s both;text-shadow:0 2px 40px rgba(59,130,196,.3)}
+.sp-brand span{color:var(--accent);font-style:italic}
+.sp-tagline{font-family:'Syne',sans-serif;font-size:.55rem;font-weight:600;letter-spacing:8px;text-transform:uppercase;color:rgba(232,244,255,.28);margin-top:14px;animation:fadeUp .6s .65s both}
+.sp-rule{width:1px;height:50px;background:linear-gradient(to bottom,transparent,rgba(59,130,196,.5),transparent);margin:24px auto;animation:fadeUp .5s .75s both}
+.sp-cta{display:flex;flex-direction:column;align-items:center;gap:14px;animation:fadeUp .6s .85s both}
+.sp-btn{display:inline-flex;align-items:center;gap:12px;padding:14px 42px;background:var(--accent);color:#0A1628;font-family:'Syne',sans-serif;font-size:.68rem;font-weight:700;letter-spacing:4px;text-transform:uppercase;text-decoration:none;border:none;cursor:pointer;transition:all .3s;box-shadow:0 6px 28px rgba(245,158,11,.35);clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%)}
+.sp-btn:hover{background:var(--accent2);transform:translateY(-2px);box-shadow:0 14px 40px rgba(245,158,11,.45)}
+.sp-skip{font-family:'Kalam',cursive;font-size:.9rem;color:rgba(232,244,255,.2);text-decoration:none;cursor:pointer;transition:color .3s}
+.sp-skip:hover{color:rgba(232,244,255,.5)}
+.sp-year{position:absolute;bottom:24px;right:32px;font-family:'Libre Baskerville',serif;font-size:2.8rem;font-weight:700;color:rgba(59,130,196,.06);pointer-events:none}
+.sp-corner{position:absolute;font-family:'Kalam',cursive;font-size:.65rem;color:rgba(232,244,255,.12)}
+.sp-corner.tl{top:24px;left:28px}
+.sp-corner.br{bottom:24px;left:28px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+/* ══ LAYOUT ══ */
+.app-shell{display:flex;height:100vh;width:100vw}
+
+/* ── LEFT PANEL ── */
+.left-panel{width:340px;min-width:340px;height:100vh;background:var(--navy);display:flex;flex-direction:column;position:relative;overflow:hidden;flex-shrink:0}
+.left-panel::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:44px 44px;pointer-events:none}
+.left-panel::after{content:'';position:absolute;bottom:0;left:0;right:0;height:280px;background:linear-gradient(to top,rgba(37,99,168,.18),transparent);pointer-events:none}
+
+.left-logo{padding:20px 20px 0;position:relative;z-index:1;flex-shrink:0}
+.logo-mark{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.logo-pin{width:30px;height:30px;background:var(--accent);border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(245,158,11,.35);flex-shrink:0}
+.logo-pin-inner{transform:rotate(45deg);font-size:.78rem}
+.logo-text{font-family:'Libre Baskerville',serif;font-size:1.3rem;font-weight:700;color:#E8F4FF;letter-spacing:-.5px}
+.logo-text span{color:var(--accent);font-style:italic}
+.logo-sub{font-family:'Kalam',cursive;font-size:.68rem;color:rgba(232,244,255,.28);margin-left:40px;letter-spacing:.5px}
+
+.left-tabs{padding:14px 20px 0;position:relative;z-index:1;flex-shrink:0}
+.tab-label{font-family:'Syne',sans-serif;font-size:.46rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(232,244,255,.28);margin-bottom:8px}
+.tabs-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.tab-btn{padding:9px 6px;font-family:'Syne',sans-serif;font-size:.52rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;background:rgba(255,255,255,.05);color:rgba(232,244,255,.38);border:1px solid rgba(255,255,255,.08);border-radius:5px;cursor:pointer;transition:all .2s;text-align:center;display:flex;align-items:center;justify-content:center;gap:5px;line-height:1.3}
+.tab-btn:hover{color:rgba(232,244,255,.7);background:rgba(255,255,255,.1)}
+.tab-btn.on{background:var(--accent);color:var(--ink);border-color:var(--accent);box-shadow:0 4px 14px rgba(245,158,11,.3)}
+
+.left-search{padding:10px 20px 0;position:relative;z-index:1;flex-shrink:0}
+.s-box{display:flex;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;overflow:hidden;transition:border-color .25s,background .25s}
+.s-box:focus-within{background:rgba(255,255,255,.1);border-color:rgba(59,130,196,.6)}
+.s-ico{padding:0 10px;display:flex;align-items:center;color:rgba(232,244,255,.28);font-size:.9rem}
+.s-in{flex:1;padding:10px 4px;font-family:'Syne',sans-serif;font-size:.78rem;background:transparent;color:#E8F4FF;border:none;outline:none}
+.s-in::placeholder{color:rgba(232,244,255,.2)}
+.s-go{padding:0 14px;background:var(--mid);color:#E8F4FF;border:none;cursor:pointer;font-family:'Syne',sans-serif;font-size:.5rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;transition:background .2s;white-space:nowrap}
+.s-go:hover{background:var(--sky)}
+
+.recent-bar{padding:8px 20px 0;position:relative;z-index:1;flex-shrink:0}
+.recent-label{font-family:'Syne',sans-serif;font-size:.44rem;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:rgba(232,244,255,.22);margin-bottom:5px}
+.recent-chips{display:flex;flex-wrap:wrap;gap:4px}
+.recent-chip{padding:3px 9px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:20px;font-family:'Syne',sans-serif;font-size:.52rem;color:rgba(232,244,255,.38);cursor:pointer;transition:all .15s}
+.recent-chip:hover{background:rgba(59,130,196,.2);color:rgba(232,244,255,.7);border-color:rgba(59,130,196,.35)}
+
+.left-browse{flex:1;overflow-y:auto;padding:12px 20px 16px;position:relative;z-index:1;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.08) transparent}
+.left-browse::-webkit-scrollbar{width:3px}
+.left-browse::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:99px}
+.browse-panel{display:none}
+.browse-panel.active{display:block}
+.panel-lbl{font-family:'Syne',sans-serif;font-size:.46rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(232,244,255,.28);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.panel-lbl::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.07)}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{padding:5px 10px;border:1px solid rgba(255,255,255,.1);border-radius:3px;font-family:'Syne',sans-serif;font-size:.57rem;font-weight:600;color:rgba(232,244,255,.45);background:rgba(255,255,255,.04);cursor:pointer;transition:all .18s;text-decoration:none}
+.chip:hover{border-color:var(--accent);color:var(--accent);background:rgba(245,158,11,.1)}
+.side-list{display:flex;flex-direction:column;gap:5px}
+.side-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);cursor:pointer;transition:all .2s}
+.side-item:hover{background:rgba(59,130,196,.18);border-color:rgba(59,130,196,.3)}
+.side-icon{width:36px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;background:rgba(255,255,255,.06);flex-shrink:0}
+.side-info{flex:1;min-width:0}
+.side-name{font-family:'Libre Baskerville',serif;font-size:.8rem;font-weight:700;color:rgba(232,244,255,.82)}
+.side-sub{font-family:'Syne',sans-serif;font-size:.47rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:rgba(232,244,255,.3);margin-top:1px}
+.side-arrow{font-size:.75rem;color:rgba(232,244,255,.3)}
+
+.left-footer{padding:10px 20px;border-top:1px solid rgba(255,255,255,.06);position:relative;z-index:1;flex-shrink:0}
+.left-footer-text{font-family:'Kalam',cursive;font-size:.62rem;color:rgba(232,244,255,.16)}
+
+/* ── RIGHT PANEL ── */
+.right-panel{flex:1;height:100vh;overflow-y:auto;background:var(--cream);position:relative;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.right-panel::-webkit-scrollbar{width:4px}
+.right-panel::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+.right-panel::before{content:'';position:fixed;top:0;right:0;width:calc(100vw - 340px);height:100vh;background-image:linear-gradient(rgba(37,99,168,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(37,99,168,.022) 1px,transparent 1px);background-size:52px 52px;pointer-events:none;z-index:0}
+.right-page{display:none;position:relative;z-index:1}
+.right-page.active{display:block}
+
+/* ── SHARED SECTION STYLES ── */
+.page-hero{padding:36px 36px 32px;position:relative;overflow:hidden}
+.page-hero::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:40px 40px}
+.hero-eyebrow{font-family:'Syne',sans-serif;font-size:.52rem;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;position:relative;z-index:1}
+.hero-title{font-family:'Libre Baskerville',serif;font-size:2rem;font-weight:700;line-height:1.15;margin-bottom:8px;position:relative;z-index:1}
+.hero-sub{font-family:'Syne',sans-serif;font-size:.72rem;line-height:1.8;position:relative;z-index:1}
+.page-body{padding:22px 36px 48px}
+.sec-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.sec-title{font-family:'Libre Baskerville',serif;font-size:1.05rem;font-style:italic;color:var(--ink);white-space:nowrap}
+.sec-line{flex:1;height:1px;background:var(--border)}
+.sec-badge{font-family:'Syne',sans-serif;font-size:.46rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:2px 8px;border:1px solid var(--border);border-radius:2px;white-space:nowrap}
+.flash{background:rgba(37,99,168,.07);border-left:3px solid var(--mid);color:var(--mid);padding:12px 18px;margin-bottom:20px;font-family:'Syne',sans-serif;font-size:.75rem;border-radius:0 4px 4px 0}
+
+/* ══ PAGE 1: SEARCH HERO ══ */
+#page-search .page-hero{background:linear-gradient(135deg,var(--navy) 0%,var(--blue) 60%,var(--mid) 100%)}
+#page-search .page-hero::after{content:'';position:absolute;top:-60px;right:-60px;width:300px;height:300px;background:radial-gradient(circle,rgba(59,130,196,.25),transparent 70%);pointer-events:none}
+#page-search .hero-title{color:#E8F4FF}
+#page-search .hero-title span{color:var(--accent);font-style:italic}
+#page-search .hero-sub{color:rgba(232,244,255,.45)}
+
+/* Destination cards */
+.dest-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px}
+@media(max-width:1200px){.dest-grid{grid-template-columns:repeat(2,1fr)}}
+.dest-card{background:var(--navy);border-radius:10px;overflow:hidden;cursor:pointer;transition:transform .3s cubic-bezier(.34,1.3,.64,1),box-shadow .3s;position:relative;text-decoration:none;display:block}
+.dest-card:hover{transform:translateY(-6px);box-shadow:0 20px 50px rgba(10,38,80,.28)}
+.dest-img-wrap{height:155px;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--navy),var(--blue))}
+.dest-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;opacity:1;transition:transform .6s;position:absolute;inset:0}
+.dest-img-wrap img.loaded{opacity:1}
+.dest-card:hover .dest-img-wrap img{transform:scale(1.07)}
+.dest-flag-ph{display:none}
+.dest-flag-emoji{display:none}
+.dest-code{display:none}
+.dest-region-tag{position:absolute;top:10px;left:10px;padding:3px 8px;background:rgba(10,22,40,.75);backdrop-filter:blur(8px);color:rgba(232,244,255,.85);font-family:'Syne',sans-serif;font-size:.44rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border-radius:2px;border:1px solid rgba(255,255,255,.08)}
+.dest-body{padding:13px 15px 15px}
+.dest-name{font-family:'Libre Baskerville',serif;font-size:1.05rem;font-weight:700;color:#E8F4FF;margin-bottom:2px}
+.dest-capital{font-family:'Syne',sans-serif;font-size:.57rem;color:rgba(232,244,255,.38);margin-bottom:7px}
+.dest-desc{font-family:'Syne',sans-serif;font-size:.63rem;line-height:1.7;color:rgba(232,244,255,.48);margin-bottom:11px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.dest-footer{display:flex;align-items:center;justify-content:space-between}
+.dest-region-label{font-family:'Syne',sans-serif;font-size:.5rem;color:rgba(232,244,255,.28)}
+.dest-explore-btn{padding:6px 12px;background:var(--accent);color:var(--ink);font-family:'Syne',sans-serif;font-size:.48rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border-radius:3px;transition:background .2s}
+.dest-card:hover .dest-explore-btn{background:var(--accent2)}
+
+/* ══ PAGE 2: ATTRACTIONS HERO ══ */
+#page-attractions .page-hero{background:linear-gradient(135deg,#081C10 0%,#0D2E1A 50%,#164A2A 100%)}
+#page-attractions .hero-eyebrow{color:#4ADE80}
+#page-attractions .hero-title{color:#F0FDF4}
+#page-attractions .hero-title span{color:#4ADE80;font-style:italic}
+#page-attractions .hero-sub{color:rgba(240,253,244,.42)}
+
+.cat-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.cat-pill{padding:6px 14px;border-radius:20px;font-family:'Syne',sans-serif;font-size:.58rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:var(--card);border:1.5px solid var(--border);color:var(--muted);cursor:pointer;transition:all .2s}
+.cat-pill:hover,.cat-pill.on{background:var(--navy);color:#E8F4FF;border-color:var(--navy)}
+
+.att-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-bottom:28px}
+.att-card{background:var(--card);border-radius:10px;overflow:hidden;border:1px solid var(--border);transition:transform .3s cubic-bezier(.34,1.3,.64,1),box-shadow .3s;cursor:pointer}
+.att-card:hover{transform:translateY(-5px);box-shadow:0 18px 44px rgba(10,38,80,.14)}
+.att-img-wrap{height:148px;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--navy),var(--blue))}
+.att-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;opacity:1;transition:transform .5s;position:absolute;inset:0}
+.att-img-wrap img.loaded{opacity:1}
+.att-card:hover .att-img-wrap img{transform:scale(1.06)}
+.att-emoji-ph{display:none}
+.att-type-tag{position:absolute;bottom:8px;left:8px;padding:3px 8px;background:rgba(10,22,40,.8);backdrop-filter:blur(8px);color:rgba(232,244,255,.85);font-family:'Syne',sans-serif;font-size:.43rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:2px}
+.att-rating-badge{position:absolute;top:8px;right:8px;display:flex;align-items:center;gap:3px;padding:4px 8px;background:rgba(245,158,11,.9);border-radius:3px;font-family:'Syne',sans-serif;font-size:.52rem;font-weight:700;color:#0A1628}
+.att-body{padding:12px 14px 14px}
+.att-loc{font-family:'Syne',sans-serif;font-size:.49rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sky);margin-bottom:3px}
+.att-name{font-family:'Libre Baskerville',serif;font-size:.96rem;font-weight:700;color:var(--ink);margin-bottom:5px}
+.att-desc{font-family:'Syne',sans-serif;font-size:.63rem;line-height:1.7;color:var(--muted);margin-bottom:10px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.att-foot{display:flex;align-items:center;justify-content:space-between}
+.att-stars{color:var(--accent);font-size:.72rem;letter-spacing:-1px}
+.att-details-btn{padding:5px 11px;background:var(--navy);color:#E8F4FF;font-family:'Syne',sans-serif;font-size:.47rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border-radius:3px;border:none;cursor:pointer;transition:background .2s}
+.att-details-btn:hover{background:var(--mid)}
+
+.map-cta{background:var(--navy);border-radius:10px;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px;border:1px solid rgba(255,255,255,.06)}
+.map-cta-info .map-title{font-family:'Libre Baskerville',serif;font-size:.92rem;font-weight:700;color:#E8F4FF;margin-bottom:2px}
+.map-cta-info .map-sub{font-family:'Syne',sans-serif;font-size:.58rem;color:rgba(232,244,255,.35)}
+.map-open-btn{padding:8px 18px;background:var(--accent);color:var(--ink);font-family:'Syne',sans-serif;font-size:.52rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;border-radius:4px;cursor:pointer;white-space:nowrap;transition:background .2s;flex-shrink:0}
+.map-open-btn:hover{background:var(--accent2)}
+
+/* ══ PAGE 3: HOTELS HERO ══ */
+#page-hotels .page-hero{background:linear-gradient(135deg,#150826 0%,#250D45 50%,#36146A 100%)}
+#page-hotels .hero-eyebrow{color:#C4B5FD}
+#page-hotels .hero-title{color:#FAF5FF}
+#page-hotels .hero-title span{color:#C4B5FD;font-style:italic}
+#page-hotels .hero-sub{color:rgba(250,245,255,.4)}
+
+.filter-row{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.f-select{padding:7px 14px;background:var(--card);border:1.5px solid var(--border);border-radius:6px;font-family:'Syne',sans-serif;font-size:.6rem;font-weight:600;color:var(--text);cursor:pointer;outline:none;transition:border-color .2s}
+.f-select:focus{border-color:var(--mid)}
+
+.hotel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;margin-bottom:28px}
+.hotel-card{background:var(--card);border-radius:10px;overflow:hidden;border:1px solid var(--border);transition:transform .3s cubic-bezier(.34,1.3,.64,1),box-shadow .3s;cursor:pointer}
+.hotel-card:hover{transform:translateY(-5px);box-shadow:0 18px 44px rgba(10,38,80,.14)}
+.hotel-img-wrap{height:165px;position:relative;overflow:hidden;background:linear-gradient(135deg,#250D45,#36146A)}
+.hotel-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;opacity:1;transition:transform .5s;position:absolute;inset:0}
+.hotel-img-wrap img.loaded{opacity:1}
+.hotel-card:hover .hotel-img-wrap img{transform:scale(1.06)}
+.hotel-emoji-ph{display:none}
+.hotel-stars-strip{position:absolute;top:10px;left:10px;display:flex;gap:1px;padding:4px 9px;background:rgba(10,5,20,.75);backdrop-filter:blur(8px);border-radius:3px;border:1px solid rgba(255,255,255,.1)}
+.h-star{font-size:.65rem;color:var(--accent)}
+.hotel-price-pill{position:absolute;bottom:10px;right:10px;padding:6px 11px;background:var(--accent);color:var(--ink);font-family:'Libre Baskerville',serif;font-size:.9rem;font-weight:700;border-radius:5px;text-align:center}
+.hotel-price-pill small{font-family:'Syne',sans-serif;font-size:.42rem;font-weight:600;letter-spacing:.5px;text-transform:uppercase;display:block;opacity:.7;margin-top:1px}
+.hotel-body{padding:14px 16px 15px}
+.hotel-loc{font-family:'Syne',sans-serif;font-size:.49rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sky);margin-bottom:3px}
+.hotel-name{font-family:'Libre Baskerville',serif;font-size:1rem;font-weight:700;color:var(--ink);margin-bottom:4px}
+.hotel-desc{font-family:'Syne',sans-serif;font-size:.63rem;line-height:1.7;color:var(--muted);margin-bottom:9px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.amenities{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:11px}
+.amenity{padding:3px 8px;background:var(--light);border-radius:20px;font-family:'Syne',sans-serif;font-size:.52rem;font-weight:600;color:var(--text)}
+.hotel-foot{display:flex;align-items:center;justify-content:space-between}
+.h-rating{display:flex;align-items:baseline;gap:4px}
+.h-rating-num{font-family:'Libre Baskerville',serif;font-size:1.1rem;font-weight:700;color:var(--ink)}
+.h-rating-lbl{font-family:'Syne',sans-serif;font-size:.5rem;color:var(--muted)}
+.hotel-book-btn{padding:7px 14px;background:var(--navy);color:#E8F4FF;font-family:'Syne',sans-serif;font-size:.49rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border-radius:3px;border:none;cursor:pointer;transition:background .2s}
+.hotel-book-btn:hover{background:var(--mid)}
+
+/* ══ PAGE 4: RESTAURANTS HERO ══ */
+#page-restaurants .page-hero{background:linear-gradient(135deg,#1A0800 0%,#2E1000 50%,#4A1C00 100%)}
+#page-restaurants .hero-eyebrow{color:#FB923C}
+#page-restaurants .hero-title{color:#FFF7ED}
+#page-restaurants .hero-title span{color:#FB923C;font-style:italic}
+#page-restaurants .hero-sub{color:rgba(255,247,237,.4)}
+
+.must-try-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:28px}
+.must-card{background:linear-gradient(135deg,var(--navy),var(--blue));border-radius:8px;padding:15px 12px;text-align:center;cursor:pointer;border:1px solid rgba(255,255,255,.07);transition:all .25s}
+.must-card:hover{transform:translateY(-4px);border-color:var(--accent);box-shadow:0 12px 30px rgba(10,38,80,.2)}
+.must-emoji{font-size:2.2rem;display:block;margin-bottom:7px}
+.must-name{font-family:'Libre Baskerville',serif;font-size:.82rem;font-weight:700;color:#E8F4FF;margin-bottom:2px}
+.must-origin{font-family:'Syne',sans-serif;font-size:.49rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);opacity:.7}
+
+.rest-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:14px;margin-bottom:28px}
+.rest-card{background:var(--card);border-radius:10px;overflow:hidden;border:1px solid var(--border);transition:transform .3s cubic-bezier(.34,1.3,.64,1),box-shadow .3s;cursor:pointer}
+.rest-card:hover{transform:translateY(-5px);box-shadow:0 18px 44px rgba(10,38,80,.14)}
+.rest-img-wrap{height:150px;position:relative;overflow:hidden;background:linear-gradient(135deg,#2E1000,#4A1C00)}
+.rest-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;opacity:1;transition:transform .5s;position:absolute;inset:0}
+.rest-img-wrap img.loaded{opacity:1}
+.rest-card:hover .rest-img-wrap img{transform:scale(1.06)}
+.rest-emoji-ph{display:none}
+.rest-cuisine-tag{position:absolute;bottom:8px;left:8px;padding:3px 8px;background:rgba(10,22,40,.82);backdrop-filter:blur(8px);color:rgba(232,244,255,.88);font-family:'Syne',sans-serif;font-size:.42rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-radius:2px}
+.rest-price-tag{position:absolute;top:8px;right:8px;padding:3px 8px;background:rgba(245,158,11,.92);color:var(--ink);font-family:'Syne',sans-serif;font-size:.52rem;font-weight:700;border-radius:3px}
+.rest-body{padding:12px 14px 14px}
+.rest-loc{font-family:'Syne',sans-serif;font-size:.49rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--sky);margin-bottom:3px}
+.rest-name{font-family:'Libre Baskerville',serif;font-size:.96rem;font-weight:700;color:var(--ink);margin-bottom:4px}
+.rest-desc{font-family:'Syne',sans-serif;font-size:.63rem;line-height:1.7;color:var(--muted);margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rest-dishes{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.rest-dish{padding:3px 8px;background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);border-radius:20px;font-family:'Syne',sans-serif;font-size:.52rem;font-weight:600;color:#92400E}
+.rest-foot{display:flex;align-items:center;justify-content:space-between}
+.rest-info{font-family:'Syne',sans-serif;font-size:.52rem;color:var(--muted);display:flex;align-items:center;gap:5px}
+.rest-view-btn{padding:5px 11px;background:var(--navy);color:#E8F4FF;font-family:'Syne',sans-serif;font-size:.47rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border-radius:3px;border:none;cursor:pointer;transition:background .2s}
+.rest-view-btn:hover{background:var(--mid)}
+
+@media(max-width:768px){
+  html,body{height:auto;overflow:auto}
+  .app-shell{flex-direction:column;height:auto}
+  .left-panel{width:100%;min-width:0;height:auto}
+  .left-browse{overflow:visible}
+  .right-panel{height:auto;overflow:visible}
+  .right-panel::before{display:none}
+  .dest-grid,.att-grid,.hotel-grid,.rest-grid,.must-try-row{grid-template-columns:1fr 1fr}
+}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;z-index:8000;display:flex;align-items:stretch;justify-content:flex-end;pointer-events:none;opacity:0;transition:opacity .3s}
+.modal-overlay.open{pointer-events:all;opacity:1}
+.modal-backdrop{position:absolute;inset:0;background:rgba(5,10,20,.65);backdrop-filter:blur(4px);cursor:pointer}
+.modal-panel{position:relative;z-index:1;width:min(760px,92vw);height:100vh;background:var(--cream);display:flex;flex-direction:column;transform:translateX(100%);transition:transform .38s cubic-bezier(.4,0,.2,1);overflow:hidden;box-shadow:-24px 0 80px rgba(5,10,20,.3)}
+.modal-overlay.open .modal-panel{transform:translateX(0)}
+.modal-img-hero{height:260px;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--navy),var(--blue));flex-shrink:0}
+.modal-img-hero img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .5s;position:absolute;inset:0}
+.modal-img-hero img.loaded{opacity:1}
+.modal-img-hero-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(10,22,40,.92) 0%,rgba(10,22,40,.2) 55%,transparent 100%)}
+.modal-emoji-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:7rem;opacity:.25}
+.modal-close{position:absolute;top:14px;right:14px;z-index:10;width:36px;height:36px;background:rgba(10,22,40,.65);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#E8F4FF;font-size:1.1rem;line-height:1;transition:background .2s}
+.modal-close:hover{background:var(--mid)}
+.modal-hero-info{position:absolute;bottom:0;left:0;right:0;padding:20px 24px}
+.modal-category-tag{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;background:var(--accent);color:var(--ink);font-family:'Syne',sans-serif;font-size:.48rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;border-radius:2px;margin-bottom:8px}
+.modal-hero-name{font-family:'Libre Baskerville',serif;font-size:1.7rem;font-weight:700;color:#E8F4FF;line-height:1.1;margin-bottom:4px}
+.modal-hero-loc{font-family:'Syne',sans-serif;font-size:.65rem;color:rgba(232,244,255,.55)}
+.modal-hero-rating{display:flex;align-items:center;gap:6px;margin-top:6px}
+.modal-stars{color:var(--accent);font-size:.85rem;letter-spacing:-1px}
+.modal-rating-num{font-family:'Libre Baskerville',serif;font-size:1rem;font-weight:700;color:#E8F4FF}
+.modal-body{flex:1;overflow-y:auto;padding:24px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.modal-body::-webkit-scrollbar{width:3px}
+.modal-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+.modal-sec{margin-bottom:22px}
+.modal-sec-title{font-family:'Syne',sans-serif;font-size:.5rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.modal-sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.modal-desc{font-family:'Syne',sans-serif;font-size:.8rem;line-height:1.9;color:var(--text)}
+.modal-facts-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.modal-fact{background:var(--navy);border-radius:8px;padding:12px 14px}
+.modal-fact-label{font-family:'Syne',sans-serif;font-size:.46rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(232,244,255,.35);margin-bottom:4px}
+.modal-fact-val{font-family:'Libre Baskerville',serif;font-size:.88rem;font-weight:700;color:#E8F4FF}
+.modal-tags{display:flex;flex-wrap:wrap;gap:6px}
+.modal-tag{padding:5px 12px;background:var(--light);border-radius:20px;font-family:'Syne',sans-serif;font-size:.62rem;font-weight:600;color:var(--text)}
+.modal-tag.accent{background:rgba(245,158,11,.12);color:#92400E;border:1px solid rgba(245,158,11,.3)}
+.modal-cta-row{display:flex;gap:10px;margin-top:8px}
+.modal-cta-btn{flex:1;padding:12px;background:var(--navy);color:#E8F4FF;font-family:'Syne',sans-serif;font-size:.6rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none;border-radius:7px;cursor:pointer;transition:background .2s;text-align:center}
+.modal-cta-btn:hover{background:var(--mid)}
+.modal-cta-btn.primary{background:var(--accent);color:var(--ink)}
+.modal-cta-btn.primary:hover{background:var(--accent2)}
+.modal-map-embed{background:var(--navy);border-radius:8px;height:140px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;cursor:pointer;border:1px solid rgba(255,255,255,.07);transition:background .2s}
+.modal-map-embed:hover{background:var(--blue)}
+.modal-map-icon{font-size:2rem}
+.modal-map-text{font-family:'Syne',sans-serif;font-size:.58rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(232,244,255,.4)}
+
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="sp-topo">
+    <svg viewBox="0 0 1200 700" preserveAspectRatio="xMidYMid slice" fill="none">
+      <ellipse cx="600" cy="350" rx="520" ry="200" stroke="white" stroke-width="1"/>
+      <ellipse cx="600" cy="350" rx="440" ry="162" stroke="white" stroke-width="1"/>
+      <ellipse cx="600" cy="350" rx="360" ry="128" stroke="white" stroke-width="1"/>
+      <ellipse cx="600" cy="350" rx="280" ry="96" stroke="white" stroke-width="1"/>
+      <ellipse cx="600" cy="350" rx="200" ry="68" stroke="white" stroke-width="1"/>
+      <ellipse cx="600" cy="350" rx="120" ry="42" stroke="white" stroke-width="1"/>
+      <line x1="0" y1="350" x2="1200" y2="350" stroke="white" stroke-width=".5" stroke-dasharray="8 16"/>
+      <line x1="600" y1="0" x2="600" y2="700" stroke="white" stroke-width=".5" stroke-dasharray="8 16"/>
+    </svg>
+  </div>
+  <div class="sp-stars" id="spStars"></div>
+  <div class="sp-blob b1">🏔️</div><div class="sp-blob b2">🌊</div>
+  <div class="sp-blob b3">🏜️</div><div class="sp-blob b4">🌴</div>
+  <div class="sp-blob b5">✈️</div><div class="sp-blob b6">🧳</div>
+  <div class="sp-horizon"></div>
+  <div class="sp-year">2025</div>
+  <div class="sp-corner tl">48°N · 2°E</div>
+  <div class="sp-corner br">35°N · 139°E</div>
+  <div class="sp-pin"><span class="sp-pin-icon">📍</span></div>
+  <div class="sp-coords">23.4° N &nbsp;·&nbsp; 45.1° E</div>
+  <div class="sp-brand">Hori<span>zons</span></div>
+  <div class="sp-tagline">World Travel Destination Explorer</div>
+  <div class="sp-rule"></div>
+  <div class="sp-cta">
+    <button class="sp-btn" id="sp-btn">Begin Exploring ✈️</button>
+    <a class="sp-skip" href="#" id="sp-skip">or jump straight in →</a>
+  </div>
+</div>
+
+<div class="app-shell">
+
+  <!-- LEFT PANEL -->
+  <aside class="left-panel">
+    <div class="left-logo">
+      <div class="logo-mark">
+        <div class="logo-pin"><span class="logo-pin-inner">📍</span></div>
+        <div class="logo-text">Hori<span>zons</span></div>
+      </div>
+      <div class="logo-sub">World Travel Explorer</div>
+    </div>
+
+    <div class="left-tabs">
+      <div class="tab-label">Explore Categories</div>
+      <div class="tabs-grid" id="tabsGrid">
+        <button class="tab-btn on" data-tab="search">🔍 Search Country</button>
+        <button class="tab-btn" data-tab="attractions">🏛 Attractions</button>
+        <button class="tab-btn" data-tab="hotels">🏨 Hotels</button>
+        <button class="tab-btn" data-tab="restaurants">🍽 Restaurants</button>
+      </div>
+    </div>
+
+    <div class="left-search">
+      <div class="s-box">
+        <div class="s-ico">🔍</div>
+        <input class="s-in" type="text" id="searchInput" placeholder="Search a country or city…" autocomplete="off"/>
+        <button class="s-go" id="searchBtn">Go</button>
+      </div>
+    </div>
+
+    <div class="recent-bar" id="recentBar" style="display:none">
+      <div class="recent-label">Recent Searches</div>
+      <div class="recent-chips" id="recentChips"></div>
+    </div>
+
+    <div class="left-browse">
+      <div class="browse-panel active" id="bp-search">
+        <div class="panel-lbl">Popular Countries</div>
+        <div class="chips">
+          {% for s in ['France','Japan','Italy','Thailand','Greece','Morocco','Australia','India','Turkey','Brazil','UAE','Peru','Spain','Egypt','Vietnam','Iceland','Portugal','Mexico','Canada','New Zealand'] %}
+          <span class="chip" onclick="goSearch('{{s}}')">{{s}}</span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="browse-panel" id="bp-attractions">
+        <div class="panel-lbl">Landmark Types</div>
+        <div class="side-list">
+          <div class="side-item" onclick="filterAttractions('All',null,true)"><div class="side-icon">🗺️</div><div class="side-info"><div class="side-name">All Attractions</div><div class="side-sub">Browse everything</div></div><div class="side-arrow">›</div></div>
+          <div class="side-item" onclick="filterAttractions('Museum',null,true)"><div class="side-icon">🏛️</div><div class="side-info"><div class="side-name">Museums</div><div class="side-sub">Art &amp; history</div></div><div class="side-arrow">›</div></div>
+          <div class="side-item" onclick="filterAttractions('Nature',null,true)"><div class="side-icon">🌿</div><div class="side-info"><div class="side-name">Nature &amp; Parks</div><div class="side-sub">Outdoor wonders</div></div><div class="side-arrow">›</div></div>
+          <div class="side-item" onclick="filterAttractions('Landmark',null,true)"><div class="side-icon">🗼</div><div class="side-info"><div class="side-name">Landmarks</div><div class="side-sub">Iconic structures</div></div><div class="side-arrow">›</div></div>
+          <div class="side-item" onclick="filterAttractions('Temple',null,true)"><div class="side-icon">⛩️</div><div class="side-info"><div class="side-name">Temples</div><div class="side-sub">Spiritual places</div></div><div class="side-arrow">›</div></div>
+          <div class="side-item" onclick="filterAttractions('Beach',null,true)"><div class="side-icon">🏖️</div><div class="side-info"><div class="side-name">Beaches</div><div class="side-sub">Sun &amp; sand</div></div><div class="side-arrow">›</div></div>
+          <div class="side-item" onclick="filterAttractions('Ancient',null,true)"><div class="side-icon">🏺</div><div class="side-info"><div class="side-name">Ancient Ruins</div><div class="side-sub">Lost civilisations</div></div><div class="side-arrow">›</div></div>
+        </div>
+      </div>
+
+      <div class="browse-panel" id="bp-hotels">
+        <div class="panel-lbl">Search by City</div>
+        <div class="chips" style="margin-bottom:12px">
+          {% for city in ['Dubai','Paris','Tokyo','Bangkok','Rome','Barcelona','Amsterdam','Istanbul','Bali','Singapore','Marrakech','Athens'] %}
+          <span class="chip" onclick="switchTab('hotels')">{{city}}</span>
+          {% endfor %}
+        </div>
+        <div class="panel-lbl">Filter by Stars</div>
+        <div class="side-list">
+          <div class="side-item" onclick="filterHotels(5)"><div class="side-icon">⭐</div><div class="side-info"><div class="side-name">5-Star Luxury</div><div class="side-sub">Premium experience</div></div><div class="side-arrow">›</div></div>
+          <div class="side-item" onclick="filterHotels(4)"><div class="side-icon">🏨</div><div class="side-info"><div class="side-name">4-Star Comfort</div><div class="side-sub">Great value</div></div><div class="side-arrow">›</div></div>
+          <div class="side-item" onclick="filterHotels(0)"><div class="side-icon">🛏️</div><div class="side-info"><div class="side-name">All Hotels</div><div class="side-sub">See everything</div></div><div class="side-arrow">›</div></div>
+        </div>
+      </div>
+
+      <div class="browse-panel" id="bp-restaurants">
+        <div class="panel-lbl">Cuisine Types</div>
+        <div class="side-list">
+          <div class="side-item" onclick="filterRestaurants('All',true)"><div class="side-icon">🌍</div><div class="side-info"><div class="side-name">All Cuisines</div><div class="side-sub">World food</div></div><div class="side-arrow">›</div></div>
+          <div class="side-item" onclick="filterRestaurants('French',true)"><div class="side-icon">🥐</div><div class="side-info"><div class="side-name">French</div><div class="side-sub">Fine dining</div></div><div class="side-arrow">›</div></div>
+          <div class="side-item" onclick="filterRestaurants('Japanese',true)"><div class="side-icon">🍣</div><div class="side-info"><div class="side-name">Japanese</div><div class="side-sub">Sushi &amp; ramen</div></div><div class="side-arrow">›</div></div>
+          <div class="side-item" onclick="filterRestaurants('Thai',true)"><div class="side-icon">🍜</div><div class="side-info"><div class="side-name">Thai</div><div class="side-sub">Bold &amp; spicy</div></div><div class="side-arrow">›</div></div>
+          <div class="side-item" onclick="filterRestaurants('Italian',true)"><div class="side-icon">🍝</div><div class="side-info"><div class="side-name">Italian</div><div class="side-sub">Pasta &amp; pizza</div></div><div class="side-arrow">›</div></div>
+          <div class="side-item" onclick="filterRestaurants('Indian',true)"><div class="side-icon">🍛</div><div class="side-info"><div class="side-name">Indian</div><div class="side-sub">Curries &amp; spices</div></div><div class="side-arrow">›</div></div>
+          <div class="side-item" onclick="filterRestaurants('Arabic',true)"><div class="side-icon">🫕</div><div class="side-info"><div class="side-name">Middle Eastern</div><div class="side-sub">Mezze &amp; grills</div></div><div class="side-arrow">›</div></div>
+          <div class="side-item" onclick="filterRestaurants('Mexican',true)"><div class="side-icon">🌮</div><div class="side-info"><div class="side-name">Mexican</div><div class="side-sub">Tacos &amp; mole</div></div><div class="side-arrow">›</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="left-footer">
+      <div class="left-footer-text">© 2025 Horizons · 195 Countries</div>
+    </div>
+  </aside>
+
+  <!-- RIGHT PANEL -->
+  <main class="right-panel" id="rightPanel">
+
+    <!-- PAGE 1: SEARCH -->
+    <div class="right-page active" id="page-search">
+      <div class="page-hero">
+        <div class="hero-eyebrow">✈️ Discover the World</div>
+        <div class="hero-title" style="color:#E8F4FF">Search for a <span>Country or City</span></div>
+        <div class="hero-sub" style="color:rgba(232,244,255,.45)">Enter any destination to explore live weather, landmarks, local food and accommodation</div>
+      </div>
+      <div class="page-body">
+        {% if error is defined and error %}<div class="flash">{{ error }}</div>{% endif %}
+        {% if results is defined and results %}
+          <div class="sec-head"><div class="sec-title">Search Results</div><div class="sec-line"></div><div class="sec-badge">{{ results|length }} found</div></div>
+          <div class="dest-grid">
+            {% for c in results %}
+            {% set cca2 = c.get('cca2','') %}
+            {% set cname = c.get('name',{}).get('common','') %}
+            {% set capital = (c.get('capital') or [''])[0] %}
+            {% set region = c.get('region','') %}
+            {% set flag = c.get('flags',{}).get('emoji','🏳️') %}
+            {% set flagpng = c.get('flags',{}).get('png','') %}
+            <a class="dest-card" href="{% if cca2 %}/destination/{{ cca2 }}{% else %}#{% endif %}">
+              <div class="dest-img-wrap">
+                {% if flagpng %}<img src="{{ flagpng }}" alt="{{ cname }}" loading="eager"/>{% endif %}
+                {% if region %}<div class="dest-region-tag">{{ region }}</div>{% endif %}
+              </div>
+              <div class="dest-body">
+                <div class="dest-name">{{ cname }}</div>
+                {% if capital %}<div class="dest-capital">🏙️ {{ capital }}</div>{% endif %}
+                <div class="dest-desc">Explore the culture, landmarks, cuisine and natural wonders of {{ cname }}.</div>
+                <div class="dest-footer">
+                  <div class="dest-region-label">🌍 {{ region }}</div>
+                  <div class="dest-explore-btn">Explore more →</div>
+                </div>
+              </div>
+            </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="sec-head"><div class="sec-title">Popular Destinations</div><div class="sec-line"></div><div class="sec-badge">{{ popular|length }} featured</div></div>
+          <div class="dest-grid">
+            {% for p in popular %}
+            <a class="dest-card" href="/destination/{{ p.cca2 }}">
+              <div class="dest-img-wrap">
+                <img src="{{ p.img }}" alt="{{ p.name }}" loading="eager"/>
+              </div>
+              <div class="dest-body">
+                <div class="dest-name">{{ p.name }}</div>
+                <div class="dest-capital">📍 Popular destination</div>
+                <div class="dest-desc">Discover the beauty, culture and hidden gems of {{ p.name }}. Plan your perfect trip.</div>
+                <div class="dest-footer">
+                  <div class="dest-region-label">⭐ Featured</div>
+                  <div class="dest-explore-btn">Explore more →</div>
+                </div>
+              </div>
+            </a>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- PAGE 2: ATTRACTIONS -->
+    <div class="right-page" id="page-attractions">
+      <div class="page-hero">
+        <div class="hero-eyebrow">🏛️ Landmarks &amp; Sights</div>
+        <div class="hero-title">Tourist <span style="color:#4ADE80;font-style:italic">Attractions</span> &amp; Landmarks</div>
+        <div class="hero-sub" style="color:rgba(240,253,244,.42)">Discover the world's most iconic places — from ancient ruins to natural wonders</div>
+      </div>
+      <div class="page-body">
+        <div class="map-cta">
+          <div class="map-cta-info">
+            <div class="map-title">📍 View on Interactive Map</div>
+            <div class="map-sub">Explore all attractions pinned on a live Leaflet map</div>
+          </div>
+          <button class="map-open-btn">Open Map View</button>
+        </div>
+        <div class="sec-head"><div class="sec-title">Filter by Category</div><div class="sec-line"></div></div>
+        <div class="cat-filter" id="catFilter">
+          <div class="cat-pill on" data-cat="All" onclick="filterAttractions('All',this)">All</div>
+          <div class="cat-pill" data-cat="Museum" onclick="filterAttractions('Museum',this)">🏛️ Museums</div>
+          <div class="cat-pill" data-cat="Nature" onclick="filterAttractions('Nature',this)">🌿 Nature</div>
+          <div class="cat-pill" data-cat="Landmark" onclick="filterAttractions('Landmark',this)">🗼 Landmarks</div>
+          <div class="cat-pill" data-cat="Temple" onclick="filterAttractions('Temple',this)">⛩️ Temples</div>
+          <div class="cat-pill" data-cat="Beach" onclick="filterAttractions('Beach',this)">🏖️ Beaches</div>
+          <div class="cat-pill" data-cat="Ancient" onclick="filterAttractions('Ancient',this)">🏺 Ancient Ruins</div>
+        </div>
+        <div class="sec-head" style="margin-top:4px"><div class="sec-title">World-Famous Attractions</div><div class="sec-line"></div><div class="sec-badge" id="attCount">12 places</div></div>
+        <div class="att-grid" id="attGrid"></div>
+      </div>
+    </div>
+
+    <!-- PAGE 3: HOTELS -->
+    <div class="right-page" id="page-hotels">
+      <div class="page-hero">
+        <div class="hero-eyebrow">🏨 Places to Stay</div>
+        <div class="hero-title">Hotels &amp; <span>Accommodation</span></div>
+        <div class="hero-sub" style="color:rgba(250,245,255,.4)">Find luxury resorts, boutique hotels and budget stays across the globe</div>
+      </div>
+      <div class="page-body">
+        <div class="sec-head"><div class="sec-title">Filter Options</div><div class="sec-line"></div></div>
+        <div class="filter-row">
+          <select class="f-select" id="hotelStarFilter" onchange="applyHotelFilter()">
+            <option value="0">All Star Ratings</option>
+            <option value="5">⭐⭐⭐⭐⭐ 5-Star Luxury</option>
+            <option value="4">⭐⭐⭐⭐ 4-Star Comfort</option>
+            <option value="3">⭐⭐⭐ 3-Star Budget</option>
+          </select>
+          <select class="f-select" id="hotelCityFilter" onchange="applyHotelFilter()">
+            <option value="">All Cities</option>
+            <option>Dubai</option><option>Paris</option><option>Tokyo</option><option>Bangkok</option>
+            <option>Rome</option><option>Bali</option><option>Marrakech</option><option>Utah</option>
+          </select>
+        </div>
+        <div class="sec-head"><div class="sec-title">Top Hotels Worldwide</div><div class="sec-line"></div><div class="sec-badge" id="hotelCount">12 properties</div></div>
+        <div class="hotel-grid" id="hotelGrid"></div>
+      </div>
+    </div>
+
+    <!-- PAGE 4: RESTAURANTS -->
+    <div class="right-page" id="page-restaurants">
+      <div class="page-hero">
+        <div class="hero-eyebrow">🍽️ Local Food Culture</div>
+        <div class="hero-title">Restaurants &amp; <span>Local Food</span></div>
+        <div class="hero-sub" style="color:rgba(255,247,237,.4)">Taste the world — from street food stalls to Michelin-starred restaurants</div>
+      </div>
+      <div class="page-body">
+        <div class="sec-head"><div class="sec-title">🌟 Must-Try Local Foods</div><div class="sec-line"></div></div>
+        <div class="must-try-row" id="mustTryGrid"></div>
+        <div class="sec-head"><div class="sec-title">Popular Restaurants</div><div class="sec-line"></div><div class="sec-badge" id="restCount">12 restaurants</div></div>
+        <div class="rest-grid" id="restGrid"></div>
+      </div>
+    </div>
+
+  </main>
+
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal-backdrop" onclick="closeModal()"></div>
+  <div class="modal-panel">
+    <div class="modal-img-hero">
+      <img id="modalImg" src="" alt="" onload="this.classList.add('loaded')" onerror="this.style.display='none'"/>
+      <div class="modal-emoji-bg" id="modalEmoji"></div>
+      <div class="modal-img-hero-ov"></div>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <div class="modal-hero-info">
+        <div class="modal-category-tag" id="modalCatTag"></div>
+        <div class="modal-hero-name" id="modalHeroName"></div>
+        <div class="modal-hero-loc" id="modalHeroLoc"></div>
+        <div class="modal-hero-rating" id="modalHeroRating"></div>
+      </div>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+/* SPLASH */
+const splash=document.getElementById('splash');
+function dismissSplash(){sessionStorage.setItem('sd','1');splash.classList.add('gone')}
+if(sessionStorage.getItem('sd'))splash.classList.add('gone');
+document.getElementById('sp-btn').addEventListener('click',function(e){e.preventDefault();dismissSplash()});
+document.getElementById('sp-skip').addEventListener('click',function(e){e.preventDefault();dismissSplash()});
+(function(){var sc=document.getElementById('spStars');for(var i=0;i<110;i++){var s=document.createElement('div'),sz=Math.random()*2+.5;s.className='sp-star';s.style.cssText='width:'+sz+'px;height:'+sz+'px;top:'+(Math.random()*100)+'%;left:'+(Math.random()*100)+'%;--sa:'+(Math.random()*.08).toFixed(2)+';--sb:'+(Math.random()*.6+.1).toFixed(2)+';--sd:'+(Math.random()*3+1.5).toFixed(1)+'s;--ss:-'+(Math.random()*4).toFixed(1)+'s';sc.appendChild(s)}})();
+
+/* TABS */
+var tabBtns=document.querySelectorAll('.tab-btn');
+var rightPages=document.querySelectorAll('.right-page');
+var bPanels=document.querySelectorAll('.browse-panel');
+var PH={search:'Search a country or city...',attractions:'Search a landmark...',hotels:'Search a city or hotel...',restaurants:'Search cuisine or restaurant...'};
+function switchTab(tab){
+  tabBtns.forEach(function(b){b.classList.toggle('on',b.dataset.tab===tab)});
+  rightPages.forEach(function(p){p.classList.toggle('active',p.id==='page-'+tab)});
+  bPanels.forEach(function(p){p.classList.toggle('active',p.id==='bp-'+tab)});
+  document.getElementById('searchInput').placeholder=PH[tab]||'Search...';
+  document.getElementById('rightPanel').scrollTo({top:0,behavior:'smooth'});
+}
+tabBtns.forEach(function(b){b.addEventListener('click',function(){switchTab(b.dataset.tab)})});
+
+/* RECENT SEARCHES */
+var recent=JSON.parse(localStorage.getItem('hz_recent')||'[]');
+function renderRecent(){
+  var bar=document.getElementById('recentBar'),chips=document.getElementById('recentChips');
+  if(!recent.length){bar.style.display='none';return}
+  bar.style.display='block';
+  chips.innerHTML=recent.slice(0,5).map(function(s){return'<span class="recent-chip" onclick="goSearch(\''+s+'\')">'+s+'</span>'}).join('');
+}
+function addRecent(q){if(!q)return;recent=recent.filter(function(s){return s.toLowerCase()!==q.toLowerCase()});recent.unshift(q);recent=recent.slice(0,8);localStorage.setItem('hz_recent',JSON.stringify(recent));renderRecent()}
+renderRecent();
+
+/* SEARCH - single click, no double step */
+var CCA2={France:'FR',Japan:'JP',Italy:'IT',Thailand:'TH',Greece:'GR',Morocco:'MA',Australia:'AU',India:'IN',Turkey:'TR',Brazil:'BR',UAE:'AE',Peru:'PE',Spain:'ES',Egypt:'EG',Vietnam:'VN',Iceland:'IS',Portugal:'PT',Mexico:'MX',Canada:'CA','New Zealand':'NZ'};
+function goSearch(q){
+  if(!q||!q.trim())return;
+  addRecent(q);
+  var code=CCA2[q];
+  window.location.href=code?('/destination/'+code):('/search?q='+encodeURIComponent(q)+'&type=country');
+}
+document.getElementById('searchBtn').addEventListener('click',function(){var q=document.getElementById('searchInput').value.trim();if(q)goSearch(q)});
+document.getElementById('searchInput').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('searchBtn').click()});
+
+/* DETAIL MODAL */
+var modal=document.getElementById('detailModal');
+function openModal(){modal.classList.add('open');document.body.style.overflow='hidden'}
+function closeModal(){modal.classList.remove('open');document.body.style.overflow=''}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal()});
+function renderStars(r){var f=Math.round(r),s='';for(var i=0;i<5;i++)s+=i<f?'\u2605':'\u2606';return s}
+
+function showDetailModal(data){
+  var img=document.getElementById('modalImg');
+  img.src=data.img||'';img.alt=data.name||'';img.classList.remove('loaded');
+  document.getElementById('modalEmoji').textContent=data.emoji||'';
+  document.getElementById('modalCatTag').textContent=(data.cuisine||data.type||data.cat||'');
+  document.getElementById('modalHeroName').textContent=data.name||'';
+  document.getElementById('modalHeroLoc').innerHTML='&#128205; '+(data.city||'')+(data.country?', '+data.country:'');
+  document.getElementById('modalHeroRating').innerHTML=data.rating?('<div class="modal-stars">'+renderStars(data.rating)+'</div><div class="modal-rating-num">'+data.rating+' / 5.0</div>'):'';
+
+  var html='';
+  if(data.desc) html+='<div class="modal-sec"><div class="modal-sec-title">About</div><div class="modal-desc">'+data.desc+'</div></div>';
+
+  var facts=[];
+  if(data.cuisine) facts.push({l:'Cuisine',v:data.cuisine});
+  else if(data.type) facts.push({l:'Category',v:data.type});
+  if(data.hours) facts.push({l:'Opening Hours',v:'&#128336; '+data.hours});
+  if(data.price) facts.push({l:'Price Range',v:data.price});
+  if(data.stars) facts.push({l:'Star Rating',v:'&#9733;'.repeat(data.stars)+'&#9734;'.repeat(5-data.stars)});
+  if(data.address) facts.push({l:'Address',v:'&#128205; '+data.address});
+  if(data.checkin) facts.push({l:'Check-in',v:data.checkin});
+  if(data.checkout) facts.push({l:'Check-out',v:data.checkout});
+  if(facts.length) html+='<div class="modal-sec"><div class="modal-sec-title">Details</div><div class="modal-facts-grid">'+facts.map(function(f){return'<div class="modal-fact"><div class="modal-fact-label">'+f.l+'</div><div class="modal-fact-val">'+f.v+'</div></div>'}).join('')+'</div></div>';
+
+  if(data.amenities&&data.amenities.length) html+='<div class="modal-sec"><div class="modal-sec-title">Amenities</div><div class="modal-tags">'+data.amenities.map(function(a){return'<span class="modal-tag">'+a+'</span>'}).join('')+'</div></div>';
+  if(data.dishes&&data.dishes.length) html+='<div class="modal-sec"><div class="modal-sec-title">Popular Dishes</div><div class="modal-tags">'+data.dishes.map(function(d){return'<span class="modal-tag accent">'+d+'</span>'}).join('')+'</div></div>';
+
+  var mapQ=encodeURIComponent((data.name||'')+(data.city?', '+data.city:'')+(data.country?', '+data.country:''));
+  html+='<div class="modal-sec"><div class="modal-sec-title">Location</div><div class="modal-map-embed" onclick="window.open(\'https://www.google.com/maps/search/?api=1&query='+mapQ+'\',\'_blank\')"><div class="modal-map-icon">&#128506;</div><div class="modal-map-text">Open in Google Maps</div></div></div>';
+
+  var cta='<button class="modal-cta-btn primary" onclick="window.open(\'https://www.google.com/search?q='+encodeURIComponent(data.name||'')+'\',\'_blank\')">Search Online &#8594;</button>';
+  cta+='<button class="modal-cta-btn" onclick="closeModal()">Close</button>';
+  html+='<div class="modal-cta-row">'+cta+'</div>';
+  document.getElementById('modalBody').innerHTML=html;
+  openModal();
+}
+
+/* ATTRACTIONS */
+var ATTRACTIONS=[
+  {name:"Eiffel Tower",city:"Paris",country:"France",type:"Landmark",cat:"Landmark",rating:4.8,desc:"The world's most visited paid monument — an iron lattice tower rising 330 metres over the Champ de Mars. Built in 1889 for the World's Fair, it offers breathtaking panoramic views from three observation decks.",img:"https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?w=800&q=85",emoji:"&#128508;",address:"Champ de Mars, 5 Av. Anatole France, Paris",hours:"09:00 - 23:45"},
+  {name:"Louvre Museum",city:"Paris",country:"France",type:"Museum",cat:"Museum",rating:4.7,desc:"The world's largest art museum, home to 35,000 objects spanning 5,000 years of history including the Mona Lisa, Venus de Milo and Winged Victory of Samothrace.",img:"https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=800&q=85",emoji:"&#127963;",address:"Rue de Rivoli, 75001 Paris",hours:"09:00 - 18:00 (closed Tue)"},
+  {name:"Colosseum",city:"Rome",country:"Italy",type:"Ancient Ruins",cat:"Ancient",rating:4.9,desc:"An oval amphitheatre built 72-80 AD, capable of seating 80,000 spectators. It hosted gladiatorial contests and public spectacles for over 400 years in the heart of Rome.",img:"https://images.unsplash.com/photo-1552832230-c0197dd311b5?w=800&q=85",emoji:"&#127999;",address:"Piazza del Colosseo 1, Roma",hours:"09:00 - 19:00"},
+  {name:"Mount Fuji",city:"Shizuoka",country:"Japan",type:"Nature",cat:"Nature",rating:4.9,desc:"Japan's highest peak at 3,776m — an active stratovolcano and UNESCO World Heritage Site, revered in Japanese culture and depicted in art for centuries.",img:"https://images.unsplash.com/photo-1490806843957-31f4c9a91c65?w=800&q=85",emoji:"&#128507;",address:"Fujinomiya, Shizuoka, Japan",hours:"Open year-round (climbing season Jul-Sep)"},
+  {name:"Fushimi Inari Shrine",city:"Kyoto",country:"Japan",type:"Temple",cat:"Temple",rating:4.8,desc:"Thousands of vermilion torii gates wind up the forested slopes of Mount Inari. Dedicated to Inari, the Shinto god of rice and business — one of Japan's most iconic spiritual sites.",img:"https://images.unsplash.com/photo-1478436127897-769e1b3f0f36?w=800&q=85",emoji:"&#9961;",address:"68 Fukakusa Yabunouchicho, Fushimi Ward, Kyoto",hours:"Open 24 hours"},
+  {name:"Burj Khalifa",city:"Dubai",country:"UAE",type:"Landmark",cat:"Landmark",rating:4.7,desc:"Standing at 828 metres, the tallest structure in the world. The At the Top observation deck on floor 148 offers a 360-degree view stretching to the horizon on a clear day.",img:"https://images.unsplash.com/photo-1582672060674-bc2bd808a8b5?w=800&q=85",emoji:"&#127961;",address:"1 Sheikh Mohammed bin Rashid Blvd, Dubai",hours:"10:00 - 23:00"},
+  {name:"Acropolis of Athens",city:"Athens",country:"Greece",type:"Ancient Ruins",cat:"Ancient",rating:4.8,desc:"The ancient citadel containing the Parthenon, Erechtheion and Propylaea — the finest surviving examples of Classical Greek architecture, standing for 2,500 years.",img:"https://images.unsplash.com/photo-1555993539-1732b0258235?w=800&q=85",emoji:"&#127963;",address:"Acropolis, Athens 105 58, Greece",hours:"08:00 - 20:00"},
+  {name:"Phi Phi Islands",city:"Krabi",country:"Thailand",type:"Beach",cat:"Beach",rating:4.9,desc:"A stunning archipelago of tropical islands with crystal-clear turquoise waters, dramatic limestone cliffs and pristine white sand beaches — among Asia's most beautiful escapes.",img:"https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&q=85",emoji:"&#127965;",address:"Ko Phi Phi Don, Krabi, Thailand",hours:"Open year-round"},
+  {name:"Taj Mahal",city:"Agra",country:"India",type:"Landmark",cat:"Landmark",rating:4.9,desc:"The ivory-white marble mausoleum commissioned in 1631 by Mughal emperor Shah Jahan. A UNESCO World Heritage Site and one of the Seven Wonders of the Modern World.",img:"https://images.unsplash.com/photo-1524492412937-b28074a5d7da?w=800&q=85",emoji:"&#128332;",address:"Dharmapuri, Tajganj, Agra, Uttar Pradesh",hours:"06:00 - 18:30 (closed Fri)"},
+  {name:"Sahara Desert",city:"Merzouga",country:"Morocco",type:"Nature",cat:"Nature",rating:4.8,desc:"The world's largest hot desert covering 9.2 million km2. The ergs near Merzouga feature dunes reaching 150 metres — best explored by camel trek at sunrise.",img:"https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=800&q=85",emoji:"&#127964;",address:"Erg Chebbi, Merzouga, Morocco",hours:"Open year-round"},
+  {name:"Hagia Sophia",city:"Istanbul",country:"Turkey",type:"Landmark",cat:"Landmark",rating:4.8,desc:"A Byzantine masterpiece constructed in 537 AD, now a mosque. Features stunning golden mosaics, a vast dome and four minarets — a symbol of Istanbul's 1,500-year layered history.",img:"https://images.unsplash.com/photo-1524231757912-21f4fe3a7200?w=800&q=85",emoji:"&#128332;",address:"Sultan Ahmet, Ayasofya Meydani, Istanbul",hours:"09:00 - 17:00 (closed during prayers)"},
+  {name:"Great Barrier Reef",city:"Queensland",country:"Australia",type:"Nature",cat:"Nature",rating:4.9,desc:"The world's largest coral reef system stretching 2,300 km. Home to 1,500 fish species, 4,000 coral types and 30 dolphin species — a UNESCO World Heritage Site.",img:"https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?w=800&q=85",emoji:"&#128032;",address:"Coral Sea, Queensland, Australia",hours:"Open year-round"}
+];
+
+function starsH(r){var s='';for(var i=0;i<5;i++)s+=i<Math.round(r)?'\u2605':'\u2606';return s}
+function attCard(a,idx){
+  return '<div class="att-card" data-cat="'+a.cat+'">'
+    +'<div class="att-img-wrap">'
+    +'<img src="'+a.img+'" alt="'+a.name+'" loading="eager"/>'
+    +'<div class="att-type-tag">'+a.type+'</div>'
+    +'<div class="att-rating-badge">&#11088; '+a.rating+'</div>'
+    +'</div>'
+    +'<div class="att-body">'
+    +'<div class="att-loc">&#128205; '+a.city+', '+a.country+'</div>'
+    +'<div class="att-name">'+a.name+'</div>'
+    +'<div class="att-desc">'+a.desc.substring(0,110)+'...</div>'
+    +'<div class="att-foot">'
+    +'<div class="att-stars">'+starsH(a.rating)+'</div>'
+    +'<button class="att-details-btn" onclick="showDetailModal(ATTRACTIONS['+idx+'])">More Details &#8594;</button>'
+    +'</div></div></div>';
+}
+function filterAttractions(cat,pillEl,doSwitch){
+  if(pillEl){document.querySelectorAll('.cat-pill').forEach(function(p){p.classList.toggle('on',p.dataset.cat===cat)})}
+  var f=cat==='All'?ATTRACTIONS:ATTRACTIONS.filter(function(a){return a.cat===cat});
+  document.getElementById('attGrid').innerHTML=f.map(function(a){return attCard(a,ATTRACTIONS.indexOf(a))}).join('');
+  document.getElementById('attCount').textContent=f.length+' places';
+  if(doSwitch)switchTab('attractions');
+}
+filterAttractions('All');
+
+/* HOTELS */
+var HOTELS=[
+  {name:"Burj Al Arab",city:"Dubai",country:"UAE",stars:5,price:"$1,200",rating:4.9,desc:"The world's most luxurious hotel shaped like a billowing sail rising 321m above the Arabian Gulf. Every room is a duplex suite with a 24-hour butler. Nine award-winning restaurants.",img:"https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=800&q=85",amenities:["Private Beach","9 Restaurants","Infinity Pool","24hr Butler","Helipad","Rolls Royce Fleet"],emoji:"&#127984;",checkin:"15:00",checkout:"12:00",address:"Jumeirah Beach Rd, Dubai"},
+  {name:"Hotel Ritz Paris",city:"Paris",country:"France",stars:5,price:"$900",rating:4.8,desc:"Legendary palace hotel on Place Vendome synonymous with Parisian elegance since 1898. Home to Bar Hemingway — the haunt of Coco Chanel and F. Scott Fitzgerald.",img:"https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&q=85",amenities:["Bar Hemingway","Espa Spa","Swimming Pool","Place Vendome Location","Fine Dining","Shopping Arcade"],emoji:"&#129346;",checkin:"15:00",checkout:"12:00",address:"15 Place Vendome, 75001 Paris"},
+  {name:"Aman Tokyo",city:"Tokyo",country:"Japan",stars:5,price:"$750",rating:4.9,desc:"Urban sanctuary occupying the top six floors of Otemachi Tower with zen-inspired interiors, spectacular city views and traditional onsen baths.",img:"https://images.unsplash.com/photo-1513407030348-c983a97b98d8?w=800&q=85",amenities:["Onsen Spa","Japanese Dining","City Views","Free WiFi","Fitness Centre","Chauffeur"],emoji:"&#127983;",checkin:"15:00",checkout:"12:00",address:"The Otemachi Tower, 1-5-6 Otemachi, Tokyo"},
+  {name:"The Peninsula Bangkok",city:"Bangkok",country:"Thailand",stars:5,price:"$380",rating:4.8,desc:"Iconic riverside hotel on the Chao Phraya offering legendary Thai hospitality. Three tiered outdoor pools with a speedboat service to all key landmarks.",img:"https://images.unsplash.com/photo-1563492065599-3520f775eeed?w=800&q=85",amenities:["River View","3-Tier Pool","Peninsula Spa","Thai Kitchen","Speedboat Transfer","Butler Service"],emoji:"&#128666;",checkin:"15:00",checkout:"12:00",address:"333 Charoennakorn Rd, Bangkok"},
+  {name:"Hotel de Russie",city:"Rome",country:"Italy",stars:5,price:"$620",rating:4.7,desc:"Steps from the Spanish Steps, Hotel de Russie is famed for its legendary secret garden — a terraced paradise in the heart of Rome beloved by artists and royalty.",img:"https://images.unsplash.com/photo-1534445967719-8ae7b972b1a5?w=800&q=85",amenities:["Secret Garden","Stravinskij Bar","Spa","Near Spanish Steps","Gym","Rooftop Terrace"],emoji:"&#127801;",checkin:"14:00",checkout:"12:00",address:"Via del Babuino, 9, 00187 Roma"},
+  {name:"Four Seasons Bali",city:"Bali",country:"Indonesia",stars:5,price:"$480",rating:4.9,desc:"Nestled among ancient Balinese rice terraces in Sayan. Each villa has a private plunge pool overlooking the Ayung River gorge with daily yoga and cultural activities.",img:"https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&q=85",amenities:["Rice Terrace View","Private Villa Pool","Daily Yoga","Jungle Walks","Ayurvedic Spa","Cultural Classes"],emoji:"&#127802;",checkin:"14:00",checkout:"12:00",address:"Sayan, Ubud, Bali 80571"},
+  {name:"La Mamounia",city:"Marrakech",country:"Morocco",stars:5,price:"$420",rating:4.8,desc:"A legendary Moroccan palace surrounded by 17 acres of gardens. Churchill painted here and the Moroccan hammam is among Africa's finest.",img:"https://images.unsplash.com/photo-1590595906931-81f04f0ccebb?w=800&q=85",amenities:["17-Acre Garden","Hammam","4 Pools","Casino","5 Restaurants","Horse Riding"],emoji:"&#128332;",checkin:"15:00",checkout:"12:00",address:"Avenue Bab Jdid, Marrakech"},
+  {name:"Amangiri",city:"Utah",country:"USA",stars:5,price:"$1,800",rating:4.9,desc:"An extraordinary desert sanctuary in Southern Utah that wraps around a natural sandstone butte. The spa pavilion floats over a rock formation with world-class stargazing.",img:"https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=800&q=85",amenities:["Canyon Views","Floating Spa","Desert Pool","Rock Climbing","Stargazing","Helicopter Tours"],emoji:"&#129390;",checkin:"15:00",checkout:"11:00",address:"1 Kayenta Rd, Canyon Point, Utah"},
+  {name:"Santorini Secret Suites",city:"Oia",country:"Greece",stars:4,price:"$310",rating:4.7,desc:"Cave-style suites carved into the caldera cliffs of Oia with front-row seats to Santorini's legendary sunsets. Each suite has a private jacuzzi over the Aegean Sea.",img:"https://images.unsplash.com/photo-1533105079780-92b9be482077?w=800&q=85",amenities:["Caldera View","Infinity Pool","Wine Cellar","Private Jacuzzi","Sunset Terrace","Sea Views"],emoji:"&#127749;",checkin:"15:00",checkout:"11:00",address:"Oia 847 02, Santorini, Greece"},
+  {name:"The Mulia Bali",city:"Bali",country:"Indonesia",stars:4,price:"$220",rating:4.6,desc:"Pristine beachfront resort with Bali's longest private stretch of white sand beach at Nusa Dua. Three freshwater pools and a world-class spa.",img:"https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?w=800&q=85",amenities:["Private Beach","Ocean View","Beach Bar","3 Pools","Mulia Spa","Tennis Court"],emoji:"&#127754;",checkin:"14:00",checkout:"12:00",address:"Jl. Raya Nusa Dua Selatan, Bali"}
+];
+function hotelCard(h,idx){
+  var ss='';for(var i=0;i<h.stars;i++)ss+='<span class="h-star">\u2605</span>';
+  return '<div class="hotel-card" data-stars="'+h.stars+'" data-city="'+h.city+'">'
+    +'<div class="hotel-img-wrap">'
+    +'<img src="'+h.img+'" alt="'+h.name+'" loading="eager"/>'
+    +'<div class="hotel-stars-strip">'+ss+'</div>'
+    +'<div class="hotel-price-pill">'+h.price+'<small>per night</small></div>'
+    +'</div>'
+    +'<div class="hotel-body">'
+    +'<div class="hotel-loc">&#128205; '+h.city+', '+h.country+'</div>'
+    +'<div class="hotel-name">'+h.name+'</div>'
+    +'<div class="hotel-desc">'+h.desc.substring(0,130)+'...</div>'
+    +'<div class="amenities">'+h.amenities.slice(0,4).map(function(a){return'<span class="amenity">'+a+'</span>'}).join('')+'</div>'
+    +'<div class="hotel-foot">'
+    +'<div class="h-rating"><div class="h-rating-num">'+h.rating+'</div><div class="h-rating-lbl">/ 5.0</div></div>'
+    +'<button class="hotel-book-btn" onclick="showDetailModal(HOTELS['+idx+'])">View Details &#8594;</button>'
+    +'</div></div></div>';
+}
+function filterHotels(s){document.getElementById('hotelStarFilter').value=s;applyHotelFilter();switchTab('hotels')}
+function applyHotelFilter(){
+  var s=parseInt(document.getElementById('hotelStarFilter').value)||0;
+  var c=document.getElementById('hotelCityFilter').value;
+  var f=HOTELS.filter(function(h){return(s===0||h.stars===s)&&(c===''||h.city===c)});
+  document.getElementById('hotelGrid').innerHTML=f.map(function(h){return hotelCard(h,HOTELS.indexOf(h))}).join('');
+  document.getElementById('hotelCount').textContent=f.length+' properties';
+}
+applyHotelFilter();
+
+/* RESTAURANTS */
+var MUST=[
+  {name:"Croissant",origin:"French",emoji:"&#129360;"},{name:"Sushi",origin:"Japanese",emoji:"&#127843;"},
+  {name:"Pad Thai",origin:"Thai",emoji:"&#127836;"},{name:"Tacos",origin:"Mexican",emoji:"&#127790;"},
+  {name:"Chicken Tikka",origin:"Indian",emoji:"&#127835;"},{name:"Shawarma",origin:"Arabic",emoji:"&#129524;"},
+  {name:"Cacio e Pepe",origin:"Italian",emoji:"&#127837;"},{name:"Pho Bo",origin:"Vietnamese",emoji:"&#127858;"}
+];
+document.getElementById('mustTryGrid').innerHTML=MUST.map(function(f){return'<div class="must-card"><span class="must-emoji">'+f.emoji+'</span><div class="must-name">'+f.name+'</div><div class="must-origin">'+f.origin+'</div></div>'}).join('');
+
+var RESTS=[
+  {name:"Le Cinq",city:"Paris",country:"France",cuisine:"French",rating:4.9,price:"$$$",hours:"12:00-14:30, 19:00-22:00",desc:"Michelin three-star haute cuisine inside the Four Seasons George V. Chef Christian Le Squer's masterful cooking draws on the finest French produce. Book 2-3 months in advance.",img:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=85",dishes:["Foie Gras au Torchon","Brittany Lobster Bisque","Grand Marnier Souffle","Wagyu Beef"],emoji:"&#129346;",address:"31 Av. George V, 75008 Paris"},
+  {name:"Sukiyabashi Jiro",city:"Tokyo",country:"Japan",cuisine:"Japanese",rating:5.0,price:"$$$",hours:"11:30-14:00, 17:30-20:30",desc:"The world's most famous sushi restaurant with three Michelin stars. Chef Jiro Ono hand-crafts each piece himself. The 20-course omakase lasts 30 minutes and costs over $300.",img:"https://images.unsplash.com/photo-1553621042-f6e147245754?w=800&q=85",dishes:["Seasonal Omakase","Otoro Fatty Tuna","Sea Urchin","Sweet Shrimp"],emoji:"&#127843;",address:"Tsukamoto Sogyo Building B1F, Ginza, Tokyo"},
+  {name:"Jay Fai",city:"Bangkok",country:"Thailand",cuisine:"Thai",rating:4.8,price:"$$",hours:"14:00-02:00 (closed Sun-Mon)",desc:"Street-food legend with a Michelin star — the first Bangkok street vendor to earn it. The owner cooks over charcoal flames while wearing ski goggles.",img:"https://images.unsplash.com/photo-1559847844-5315695dadae?w=800&q=85",dishes:["Giant Crab Omelette","Drunken Noodles","Tom Yum Goong","Pad Kee Mao"],emoji:"&#127836;",address:"327 Maha Chai Rd, Samran Rat, Bangkok"},
+  {name:"Osteria Francescana",city:"Modena",country:"Italy",cuisine:"Italian",rating:5.0,price:"$$$",hours:"12:30-14:00, 20:00-22:00",desc:"Massimo Bottura's three-Michelin-star temple of modern Italian cuisine has twice topped the World's 50 Best list. Famous for the iconic dish 'Oops! I Dropped the Lemon Tart'.",img:"https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&q=85",dishes:["Five Ages of Parmigiano","Oops I Dropped the Tart","Bollito Misto","Black Truffle Risotto"],emoji:"&#127837;",address:"Via Stella 22, 41121 Modena"},
+  {name:"Al Hadheerah",city:"Dubai",country:"UAE",cuisine:"Arabic",rating:4.8,price:"$$",hours:"19:00-23:30",desc:"Immersive Bedouin-style desert dining at Bab Al Shams resort. Live falconry, camel rides, tanoura dancers and belly performances while chefs grill over open fires.",img:"https://images.unsplash.com/photo-1518684079-3c830dcef090?w=800&q=85",dishes:["Arabic Mixed Grill","Creamy Hummus","Slow-cooked Lamb Ouzi","Fattoush Salad","Kunafa"],emoji:"&#129524;",address:"Bab Al Shams Desert Resort, Dubai"},
+  {name:"Pujol",city:"Mexico City",country:"Mexico",cuisine:"Mexican",rating:4.9,price:"$$$",hours:"13:30-15:30, 19:00-22:00",desc:"Chef Enrique Olvera reimagines ancestral Mexican cuisine. The Mole Madre — aged over 2,500 days — is the most iconic dish in all of Latin American fine dining.",img:"https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=800&q=85",dishes:["Mole Madre 2500 days","Taco de Canasta","Corn Husk Meringue","Ant Larvae Tacos"],emoji:"&#127790;",address:"Tennyson 133, Polanco, Mexico City"},
+  {name:"Indian Accent",city:"New Delhi",country:"India",cuisine:"Indian",rating:4.8,price:"$$",hours:"12:00-14:30, 19:00-23:00",desc:"Chef Manish Mehrotra uses indigenous Indian ingredients with global technique — modern yet deeply rooted in India's culinary heritage.",img:"https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800&q=85",dishes:["Meetha Achaar Spare Ribs","Blue Cheese Naan","Doda Burfi Treacle Tart","Duck Khurchan"],emoji:"&#127835;",address:"The Lodhi, Lodhi Rd, New Delhi"},
+  {name:"Central",city:"Lima",country:"Peru",cuisine:"Peruvian",rating:5.0,price:"$$$",hours:"12:30-15:00, 19:00-22:00",desc:"Chef Virgilio Martinez explores Peru's biodiversity — each course represents a different altitude from the ocean floor to Andean peaks at 4,100 metres.",img:"https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800&q=85",dishes:["Amazonian Piranha","Andean Grain and Tubers","Coastal Ceviche","Pachamanca"],emoji:"&#128032;",address:"Av. Pedro de Osma 301, Barranco, Lima"},
+  {name:"La Maison Arabe",city:"Marrakech",country:"Morocco",cuisine:"Arabic",rating:4.7,price:"$$",hours:"12:00-15:00, 19:00-23:00",desc:"Historic riad restaurant founded in 1946 serving authentic Moroccan cuisine in an enchanting courtyard. One of Marrakech's oldest and most beloved restaurants.",img:"https://images.unsplash.com/photo-1590595906931-81f04f0ccebb?w=800&q=85",dishes:["Lamb and Prune Tagine","Chicken Bastilla","Couscous Royale","Moroccan Mint Tea"],emoji:"&#129524;",address:"1 Derb Assehbe, Bab Doukkala, Marrakech"},
+  {name:"Noma",city:"Copenhagen",country:"Denmark",cuisine:"Nordic",rating:5.0,price:"$$$",hours:"12:00-13:30 (seatings only)",desc:"Rene Redzepi's legendary New Nordic restaurant has topped the World's 50 Best list four times. Noma pioneered foraging as fine dining and reinvented Scandinavian food culture.",img:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=85",dishes:["Wild Plums and Juniper","Fermented Barley Porridge","Reindeer Marrow","Sea Buckthorn"],emoji:"&#127807;",address:"Refshalevej 96, 1432 Copenhagen"}
+];
+function restCard(r,idx){
+  return '<div class="rest-card" data-cuisine="'+r.cuisine+'">'
+    +'<div class="rest-img-wrap">'
+    +'<img src="'+r.img+'" alt="'+r.name+'" loading="eager"/>'
+    +'<div class="rest-cuisine-tag">'+r.cuisine+'</div>'
+    +'<div class="rest-price-tag">'+r.price+'</div>'
+    +'</div>'
+    +'<div class="rest-body">'
+    +'<div class="rest-loc">&#128205; '+r.city+', '+r.country+'</div>'
+    +'<div class="rest-name">'+r.name+'</div>'
+    +'<div class="rest-desc">'+r.desc.substring(0,120)+'...</div>'
+    +'<div class="rest-dishes">'+r.dishes.slice(0,3).map(function(d){return'<span class="rest-dish">'+d+'</span>'}).join('')+'</div>'
+    +'<div class="rest-foot">'
+    +'<div class="rest-info">&#128336; '+r.hours+' &middot; &#11088; '+r.rating+'</div>'
+    +'<button class="rest-view-btn" onclick="showDetailModal(RESTS['+idx+'])">View Details &#8594;</button>'
+    +'</div></div></div>';
+}
+function filterRestaurants(c,doSwitch){
+  var f=c==='All'?RESTS:RESTS.filter(function(r){return r.cuisine===c});
+  document.getElementById('restGrid').innerHTML=f.map(function(r){return restCard(r,RESTS.indexOf(r))}).join('');
+  document.getElementById('restCount').textContent=f.length+' restaurants';
+  if(doSwitch)switchTab('restaurants');
+}
+filterRestaurants('All');
+
+/* Active tab from URL */
+var urlType='{{ search_type if search_type else "" }}';
+if(urlType==='attractions')switchTab('attractions');
+else if(urlType==='hotels')switchTab('hotels');
+else if(urlType==='restaurants')switchTab('restaurants');
+</script>
+</body>
+</html>

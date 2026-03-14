@@ -1,0 +1,6 @@
+{
+  "css.validate": false,
+  "html.validate.styles": false,
+  "css.lint.unknownAtRules": "ignore",
+  "css.lint.validProperties": ["--i", "--ai", "--si", "--dur", "--del", "--r0", "--r1", "--tx", "--ty", "--sa", "--sb", "--sd", "--ss"]
+}
